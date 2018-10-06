@@ -62,8 +62,6 @@ def controller_thread():
 			pass
 
 if __name__ == '__main__':
-	global button_active
-	global switch_active
 	try:
 		t = threading.Thread(target=controller_thread)
 		t.start()
