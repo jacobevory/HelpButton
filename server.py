@@ -18,19 +18,17 @@ OFF = GPIO.LOW
 GPIO.setwarnings(False)
 GPIO.setup([AMBER_LIGHT, RED_LIGHT, HORN], GPIO.OUT, initial=GPIO.LOW)
 
+button_active = 0
+switch_active = 1
 
 credentials = pika.PlainCredentials('lobby', 'button')
 parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
 connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
-channel.queue_declare(queue='signal', arguments={'x-message-ttl' : 1000})
-
-
-button_active = 0
-switch_active = 1
+channel.queue_declare(queue='signal', arguments={'x-message-ttl' : 2000})
 
 def controller_thread():
-	
+
 	def callback(ch, method, properties, body):
 		global button_active
 		global switch_active
@@ -38,8 +36,7 @@ def controller_thread():
 		print (data_in)
 		print(" [x] Received %r" % data_in)
 		j = json.loads(data_in)
-		if int(j["Button"]) == 1:
-			print("Success")
+		if int(j['Button']) == 1:
 			button_active = 1
 			switch_active = 0
 		elif int(j['Switch']) == 0:
@@ -48,10 +45,9 @@ def controller_thread():
 		elif int(j['Switch']) == 1:
 			button_active = 0
 			switch_active = 1
-		
+
 	while True:
 		try:
-			print("HELLO")
 			channel.basic_consume(callback,
 							  queue='signal',
 							  no_ack=True)
@@ -62,20 +58,21 @@ def controller_thread():
 			pass
 
 if __name__ == '__main__':
+	global button_active
+	global switch_active
 	try:
 		t = threading.Thread(target=controller_thread)
 		t.start()
-		print("thread started")
 		count = 0
 		while True:
-			print(str(button_active) + " , " + str(switch_active))
+#			print(str(button_active) + " , " + str(switch_active))
 			if button_active == 1:
 				GPIO.output(AMBER_LIGHT, OFF)
 				if count % 2 == 0:
 					GPIO.output(RED_LIGHT, ON)
 				else:
 					GPIO.output(RED_LIGHT, OFF)
-				if count % 5 == 0:
+				if count % 10 == 0:
 					GPIO.output(HORN, ON)
 				else:
 					GPIO.output(HORN, OFF)
@@ -91,7 +88,7 @@ if __name__ == '__main__':
 				GPIO.output(AMBER_LIGHT, ON)
 				count = 0
 				
-			time.sleep(0.5)
+			time.sleep(0.2)
 					
     # Stop on Ctrl+C and clean up
 	except KeyboardInterrupt:
