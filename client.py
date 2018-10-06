@@ -30,17 +30,19 @@ parameters = pika.ConnectionParameters(host=serverIP, credentials=credentials)
 connection = pika.BlockingConnection(parameters)
 
 
-
 def sendData():
 	global button_active
 	global switch_active
 	global send_active
 	
 	sendBody = "{\"Button\":\"" + str(button_active) + "\", \"Switch\":\"" + str(switch_active) + "\"}"
-	
+#	channel = connection.channel()
+#	channel.queue_declare(queue=queueName, arguments={'x-message-ttl' : 10000})
+
 	channel.basic_publish(exchange='',
 				  routing_key=queueName,
 				  body=sendBody)
+	time.sleep(0.5)
 	print(sendBody)
 	send_active = 0
 	
@@ -50,18 +52,19 @@ def buttonPressed(self):
 	global send_active
 	if switch_active == 1:
 		button_active = 1
-		send_active = 1
+#		sendData()
 
 def switchFlipped(self):
 	global button_active
 	global switch_active
 	global send_active
 	button_active = 0
+	time.sleep(0.1)
 	if GPIO.input(SWITCH_INPUT):
 		switch_active = 1
 	else:
 		switch_active = 0
-	send_active = 1
+#	sendData()
 	
 	
 GPIO.add_event_detect(BUTTON_INPUT, GPIO.RISING, buttonPressed)
@@ -71,28 +74,30 @@ if __name__ == '__main__':
 	try:
 		switch_active = GPIO.input(SWITCH_INPUT)
 		channel = connection.channel()
-		channel.queue_declare(queue=queueName, arguments={'x-message-ttl' : 1000})
+		channel.queue_declare(queue=queueName, arguments={'x-message-ttl' : 2000})
+
 		count = 0
 		while True:
-			
 			if switch_active and not button_active:
 				GPIO.output(BUTTON_LIGHT, ON)
 			elif switch_active and button_active:
-				if count % 2 == 0:
+				if count % 10 == 0:
 					GPIO.output(BUTTON_LIGHT, ON)
 				else:
 					GPIO.output(BUTTON_LIGHT, OFF)
 			else:
 				GPIO.output(BUTTON_LIGHT, OFF)	
-			count = count + 1
-			print(str(button_active) + " , " + str(switch_active))
-			if send_active == 1:
+			if count % 5 == 0:
 				sendData()
-			time.sleep(0.5)
+			count = count + 1
+			if count >= 65535:
+				count = 0
+#			print(str(button_active) + " , " + str(switch_active))
+#			if send_active == 1:
+#				sendData()
+			time.sleep(0.1)
 	except KeyboardInterrupt:   # Ctrl+C
 		 connection.close()
-	except:
-		print("PIKA ERROR")
 	finally:
 		 GPIO.output(BUTTON_LIGHT, GPIO.LOW)
 		 os.execv(sys.executable, ['python3'] + sys.argv)
