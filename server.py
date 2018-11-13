@@ -72,7 +72,15 @@ if __name__ == '__main__':
 					GPIO.output(RED_LIGHT, ON)
 				else:
 					GPIO.output(RED_LIGHT, OFF)
-				if count % 10 == 0:
+				if count % 32 == 0 and count < 75:
+					GPIO.output(HORN, ON)
+				elif count % 16 == 0 and count > 74 and count < 150:
+					GPIO.output(HORN, ON)
+				elif count % 8 == 0 and count > 149 and count < 200:
+					GPIO.output(HORN, ON)
+				elif count % 4 == 0 and count > 199 and count < 250:
+					GPIO.output(HORN, ON)
+				elif count % 2 == 0 and count > 249:
 					GPIO.output(HORN, ON)
 				else:
 					GPIO.output(HORN, OFF)
