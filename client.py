@@ -50,9 +50,12 @@ def buttonPressed(self):
 	global switch_active
 	global send_active
 	global count
-	if switch_active == 1:
-		button_active = 1
-	count = 0
+	if (count > 2):
+		if (button_active == 0):
+			button_active = 1
+		elif (button_active == 1):
+			button_active = 0
+		count = 0
 #		sendData()
 
 def switchFlipped(self):
@@ -93,8 +96,6 @@ if __name__ == '__main__':
 				GPIO.output(BUTTON_LIGHT, OFF)	
 			if count % 5 == 0:
 				sendData()
-			if count > 600:
-				switch_active = 1;
 			count = count + 1
 			if count >= 65535:
 				count = 0

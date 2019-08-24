@@ -36,15 +36,8 @@ def controller_thread():
 		print (data_in)
 		print(" [x] Received %r" % data_in)
 		j = json.loads(data_in)
-		if int(j['Button']) == 1:
-			button_active = 1
-			switch_active = 0
-		elif int(j['Switch']) == 0:
-			button_active = 0
-			switch_active = 0
-		elif int(j['Switch']) == 1:
-			button_active = 0
-			switch_active = 1
+		button_active = int(j['Button'])
+		switch_active = int(j['Switch'])
 
 	while True:
 		try:
@@ -80,13 +73,15 @@ if __name__ == '__main__':
 					GPIO.output(HORN, ON)
 				elif count % 4 == 0 and count > 199 and count < 250:
 					GPIO.output(HORN, ON)
-				elif count % 2 == 0 and count > 249:
+				elif count % 2 == 0 and count > 249 and count < 300:
+					GPIO.output(HORN, ON)
+				elif count > 299:
 					GPIO.output(HORN, ON)
 				else:
 					GPIO.output(HORN, OFF)
 				count = count + 1
 			elif switch_active == 0:
-				GPIO.output(RED_LIGHT, OFF)
+				GPIO.output(RED_LIGHT, ON)
 				GPIO.output(HORN, OFF)
 				GPIO.output(AMBER_LIGHT, OFF)
 				count = 0
